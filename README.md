@@ -25,7 +25,7 @@ Hound 只把 GitHub Release 推到 Docker Hub，所以带 `-beta` 的标签是�
 `tag_regex` 只收 `^\d+\.\d+\.\d+-beta$`，`version_regex` 去掉后缀，
 镜像引用里保留原标签（`.../hound:0.4.3-beta`）。
 
-Postgres 作为第二个镜像单独跟踪 `18.x-alpine` 系列，跟上游 compose 的主版本一致，
+Postgres 作为第二个镜像单独跟踪 `18.x` 系列，跟上游 compose 的主版本一致，
 不参与包版本计算（`version_source` 只指向 hound）。
 
 ## 数据目录：绕开上游带空格的路径
