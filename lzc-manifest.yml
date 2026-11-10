@@ -1,0 +1,99 @@
+application:
+  subdomain: hound
+  multi_instance: false
+  # Hound 自己有一套账号体系，但首次启动会写入上游固定的默认口令，
+  # 所以这里不放开 public_path：先由懒猫平台入口登录兜一层，
+  # 用户进应用后必须第一时间改掉 admin 口令。
+  # 需要让手机 / TV 客户端直连时，请自行评估风险后再把 public_path 打开。
+  upstreams:
+    - location: /
+      backend: http://hound:2323/
+services:
+  hound:
+    # upstream: houndmediaserver/hound:0.4.3-beta
+    image: docker.1ms.run/houndmediaserver/hound:0.4.3-beta
+    # 上游把影音库和下载目录写死成相对工作目录的 "Hound Data"（带空格）。
+    # 这里绑到没有空格的 /data，再用软链接顶上去；容器 rootfs 每次启动都是
+    # 新的，先清掉同名目录再链接，重复执行结果一致。
+    setup_script: rm -rf "/app/Hound Data" && ln -s /data "/app/Hound Data"
+    environment:
+      - APP_ENV=production
+      - SERVER_PORT=2323
+      - TZ=Asia/Shanghai
+      - POSTGRES_HOST=hound-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=hound_db
+      - POSTGRES_USER=hound
+      - POSTGRES_PASSWORD={{ printf "%x" (stable_secret "hound_db_password") }}
+      # 上游没有默认值，缺失时进程直接 panic
+      - HOUND_SECRET={{ printf "%x" (stable_secret "hound_secret") }}
+      - TMDB_API_KEY={{ .U.tmdb_api_key }}
+      - MDBLIST_API_KEY={{ .U.mdblist_api_key }}
+      - ENABLE_EXTERNAL_LIBRARY={{ .U.enable_external_library }}
+      # 路径里不带空格，避免环境变量渲染时的歧义
+      - EXTERNAL_LIBRARY_MOVIES_PATH=/extlib/Movies
+      - EXTERNAL_LIBRARY_SHOWS_PATH=/extlib/Shows
+    depends_on:
+      - hound-postgres
+    binds:
+      # 影音库、下载、缩略图与缓存（就是上游的 "Hound Data"）
+      - /lzcapp/var/data:/data
+      # 已有的影音库：从本应用文稿目录只读挂进来，扫描和播放都不写原文件
+      - /lzcapp/run/mnt/home/{{ .U.media_dir }}:/extlib:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -qO- http://127.0.0.1:2323/ >/dev/null || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+  hound-postgres:
+    # upstream: library/postgres:18.4-alpine
+    image: docker.1ms.run/library/postgres:18.4-alpine
+    environment:
+      - POSTGRES_DB=hound_db
+      - POSTGRES_USER=hound
+      - POSTGRES_PASSWORD={{ printf "%x" (stable_secret "hound_db_password") }}
+      - TZ=Asia/Shanghai
+    binds:
+      - /lzcapp/var/db:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U hound -d hound_db
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+usage: |
+  Hound 是一体化媒体服务器：找片、看片、记录追剧进度、管理影音库。
+  既能播放已经下载好的文件，也能按配置的来源取片，还支持 IPTV 直播。
+  配套的 Android / Android TV / iOS / tvOS 客户端见上游 README。
+
+  首次使用：
+    1. 打开应用，用 admin 登录。初始口令是上游内置的公开默认值，
+       登录后请立刻改成自己的强密码。
+    2. 填 TMDB API Key（部署参数里设置）：Hound 只用 TMDB 做元数据，
+       没有它搜索、海报、剧集信息基本都是空的。
+    3. 已有影音库：把影片放进本应用文稿目录下的「影视库目录」
+       （默认 Media），其中再分 Movies 和 Shows 两个子目录，
+       然后打开「外部影音库扫描」。目录名要能和 TMDB 对上，
+       识别不准时可在文件夹名后加 [tmdbid-1234] 强制指定。
+
+  部署参数：
+    - TMDB API Key：强烈建议填写。
+    - MDBList API Key：可选，用于导入 MDBList 片单。
+    - 影视库目录：文稿目录下的子目录名，只读挂载到容器内 /extlib。
+    - 外部影音库扫描：默认关闭，确认目录里已经放好内容后再开。
+
+  数据与安全：
+    - 应用数据（影音库、下载、缓存）在 var/data，数据库在 var/db，
+      卸载应用会一并删除，请提前备份。
+    - 本包走平台入口登录，应用地址不会直接暴露到公网；
+      即便如此，也请务必改掉 admin 的默认口令。
+    - 上游仍在 beta（0.4.x），API 与数据库结构可能随版本变动，
+      升级前先备份。
+
+  本包未在懒猫实机安装验证，功能以上游文档为准：
+  https://hound-media-server.github.io/hound-site/

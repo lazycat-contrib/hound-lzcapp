@@ -1,0 +1,56 @@
+params:
+  - id: tmdb_api_key
+    type: secret
+    name: TMDB API Key
+    description: "TMDB API key for movie and TV metadata. Hound only uses TMDB, so without a key search, posters and episode info stay empty."
+    optional: true
+    default_value: ""
+
+  - id: mdblist_api_key
+    type: secret
+    name: MDBList API Key
+    description: "MDBList API key for importing MDBList lists. Leave empty to disable MDBList catalogs."
+    optional: true
+    default_value: ""
+
+  - id: media_dir
+    type: string
+    name: Media Library Folder
+    description: "Folder name under this app's documents directory, mounted read-only at /extlib. Put existing media in Movies and TV Shows subfolders inside it."
+    optional: true
+    default_value: "Media"
+
+  - id: enable_external_library
+    type: bool
+    name: External Library Scan
+    description: "Scan /extlib/Movies and /extlib/TV Shows. Keep it off until the folders actually contain media, otherwise the scanner does nothing useful."
+    optional: true
+    default_value: "false"
+
+locales:
+  zh:
+    tmdb_api_key:
+      name: TMDB API Key
+      description: 影片元数据用的 TMDB API Key。Hound 只认 TMDB，不填的话搜索、海报、剧集信息基本是空的。
+    mdblist_api_key:
+      name: MDBList API Key
+      description: 导入 MDBList 片单用的 API Key。留空则不启用 MDBList。
+    media_dir:
+      name: 影视库目录
+      description: 本应用文稿目录下的子目录名，只读挂载到容器里的 /extlib。已有影片请放在其中的 Movies 与 TV Shows 子目录。
+    enable_external_library:
+      name: 外部影音库扫描
+      description: 扫描 /extlib/Movies 与 /extlib/TV Shows。请先把内容放好再开启，否则扫描没有意义。
+  en:
+    tmdb_api_key:
+      name: TMDB API Key
+      description: TMDB API key for movie and TV metadata. Hound only uses TMDB, so without a key search, posters and episode info stay empty.
+    mdblist_api_key:
+      name: MDBList API Key
+      description: MDBList API key for importing MDBList lists. Leave empty to disable MDBList catalogs.
+    media_dir:
+      name: Media Library Folder
+      description: Folder name under this app's documents directory, mounted read-only at /extlib. Put existing media in the Movies and TV Shows subfolders inside it.
+    enable_external_library:
+      name: External Library Scan
+      description: Scan /extlib/Movies and /extlib/TV Shows. Keep it off until the folders actually contain media.

@@ -1,0 +1,19 @@
+package: community.lazycat.app.hound
+name: Hound
+description: "All-in-one media server: find, watch, track and manage movies and TV shows"
+version: 0.4.3
+min_os_version: "1.5.0"
+homepage: https://github.com/Hound-Media-Server/hound
+author: Hound Media Server
+license: AGPL-3.0
+permissions:
+  required:
+    - net.internet
+    - document.private
+locales:
+  zh:
+    name: Hound
+    description: 一体化媒体服务器：找片、看片、追剧、管理影音库，支持本地影音库、下载源与 IPTV 直播
+  en:
+    name: Hound
+    description: All-in-one media server for finding, watching, tracking and managing movies and TV shows

@@ -1,0 +1,60 @@
+version: 1
+
+project:
+  root: .
+  build_config: lzc-build.yml
+  package_file: package.yml
+  output: dist/application.lpk
+  target_arch: amd64
+
+update:
+  strategy: publish
+  allow_downgrade: false
+  version_source:
+    type: image
+    image: hound
+
+build:
+  toolchains: []
+  run_buildscript: false
+
+images:
+  # 上游只把 GitHub Release 推到 Docker Hub，标签形如 0.4.3-beta（无 v 前缀），
+  # 另外还有 -staging / -demo / latest 等开发标签。这里只跟 -beta 这一段，
+  # 去掉后缀后作为包版本（0.4.3-beta -> 0.4.3）。
+  - id: hound
+    target: service
+    service: hound
+    source: houndmediaserver/hound
+    channel: custom
+    sort: semver
+    tag_regex: '^[0-9]+\.[0-9]+\.[0-9]+-beta$'
+    version_regex: '^(?P<version>[0-9]+\.[0-9]+\.[0-9]+)-beta$'
+    version_template: '{version}'
+    delivery:
+      mode: mirror
+      require_digest_match: true
+
+  # 数据库跟随上游 18.x 系列；两段式标签补成三段 SemVer 供排序使用。
+  - id: hound-postgres
+    target: service
+    service: hound-postgres
+    source: library/postgres
+    channel: custom
+    sort: semver
+    tag_regex: '^18\.[0-9]+$'
+    version_regex: '^(?P<version>18\.[0-9]+)$'
+    version_template: '{version}.0'
+    delivery:
+      mode: mirror
+      require_digest_match: true
+
+stores:
+  official:
+    # 只发布喵喵（私有）商店，不走官方审核
+    enabled: false
+  private:
+    enabled: true
+    skip_if_version_exists: true
+    name: Hound
+    summary: "一体化媒体服务器：找片、看片、追剧、管理影音库"
