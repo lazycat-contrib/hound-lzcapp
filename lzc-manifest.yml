@@ -49,8 +49,8 @@ services:
       retries: 3
       start_period: 60s
   hound-postgres:
-    # upstream: library/postgres:18.6
-    image: docker.1ms.run/library/postgres:18.6
+    # upstream: library/postgres:18.7
+    image: docker.1ms.run/library/postgres:18.7
     environment:
       - POSTGRES_DB=hound_db
       - POSTGRES_USER=hound
