@@ -10,8 +10,8 @@ application:
       backend: http://hound:2323/
 services:
   hound:
-    # upstream: houndmediaserver/hound:0.4.3-beta
-    image: docker.1ms.run/houndmediaserver/hound:0.4.3-beta
+    # upstream: houndmediaserver/hound:0.4.4-beta
+    image: docker.1ms.run/houndmediaserver/hound:0.4.4-beta
     # 上游把影音库和下载目录写死成相对工作目录的 "Hound Data"（带空格）。
     # 这里绑到没有空格的 /data，再用软链接顶上去；容器 rootfs 每次启动都是
     # 新的，先清掉同名目录再链接，重复执行结果一致。
